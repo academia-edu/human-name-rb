@@ -7,15 +7,15 @@ GIT
 PATH
   remote: .
   specs:
-    humanname (0.3.3)
-      ffi (~> 1.9.1)
+    humanname (0.3.3.1.academia-x86_64-linux)
+      ffi (~> 1.9)
 
 GEM
   remote: https://rubygems.org/
   specs:
     coderay (1.1.0)
     diff-lcs (1.2.5)
-    ffi (1.9.10)
+    ffi (1.13.1)
     human_name_parser (1.0.1)
     method_source (0.8.2)
     namae (0.10.1)
@@ -54,4 +54,4 @@ DEPENDENCIES
   rubygems-tasks (~> 0.2.4)
 
 BUNDLED WITH
-   1.11.2
+   2.1.4
