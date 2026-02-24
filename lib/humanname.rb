@@ -19,8 +19,13 @@ module HumanName
   module Native
     extend FFI::Library
 
-    extension = RUBY_PLATFORM =~ /darwin|mac os/i ? 'dylib' : 'so'
-    ffi_lib File.expand_path("../libhuman_name.#{extension}", __FILE__)
+    lib_name = if RUBY_PLATFORM =~ /darwin|mac os/i
+      arch = RUBY_PLATFORM =~ /arm64|aarch64/i ? 'arm64' : 'x86_64'
+      "libhuman_name.#{arch}.dylib"
+    else
+      'libhuman_name.so'
+    end
+    ffi_lib File.expand_path("../#{lib_name}", __FILE__)
 
     attach_function :human_name_parse, [:string], :pointer
     attach_function :human_name_consistent_with, [:pointer, :pointer], :bool
