@@ -11,7 +11,6 @@ Gem::Specification.new do |s|
   s.files       = %w(humanname.gemspec Gemfile) + Dir.glob("{lib,spec}/**/*")
   s.homepage    = 'https://https://github.com/djudd/human-name-rb'
   s.license     = 'Apache-2.0'
-  s.platform    = Gem::Platform::CURRENT # Linux only, for now
   s.add_runtime_dependency 'ffi', '~> 1.9'
   s.add_development_dependency 'rake', '~> 10.4.2'
   s.add_development_dependency 'rspec', '~> 3.4.0'
