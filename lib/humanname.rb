@@ -1,4 +1,5 @@
 require 'ffi'
+require 'rbconfig'
 require 'humanname/version'
 
 module HumanName
@@ -16,27 +17,74 @@ module HumanName
     display_initial_surname
   ).freeze
 
+  class UnsupportedPlatform < StandardError
+    def initialize
+      platform = Gem::Platform.local
+      super("Unsupported platform: #{platform.os}-#{platform.cpu}")
+    end
+  end
+
   module Native
     extend FFI::Library
 
-    extension = RUBY_PLATFORM =~ /darwin|mac os/i ? 'dylib' : 'so'
-    ffi_lib File.expand_path("../libhuman_name.#{extension}", __FILE__)
+    def self.init!
+      path = native_lib_path
+      if File.exist?(path)
+        ffi_lib path
+      else
+        raise UnsupportedPlatform.new
+      end
 
-    attach_function :human_name_parse, [:string], :pointer
-    attach_function :human_name_consistent_with, [:pointer, :pointer], :bool
-    attach_function :human_name_hash, [:pointer], :uint64
+      attach_function :human_name_parse, [:string], :pointer
+      attach_function :human_name_consistent_with, [:pointer, :pointer], :bool
+      attach_function :human_name_hash, [:pointer], :uint64
 
-    NAME_PARTS.each do |part|
-      attach_function "human_name_#{part}".to_sym, [:pointer], :pointer
+      NAME_PARTS.each do |part|
+        attach_function "human_name_#{part}".to_sym, [:pointer], :pointer
+      end
+
+      attach_function :human_name_matches_slug_or_localpart, [:pointer, :string], :bool
+      attach_function :human_name_goes_by_middle_name, [:pointer], :bool
+      attach_function :human_name_byte_len, [:pointer], :uint32
+
+      attach_function :human_name_free_name, [:pointer], :void
+      attach_function :human_name_free_string, [:pointer], :void
     end
 
-    attach_function :human_name_matches_slug_or_localpart, [:pointer, :string], :bool
-    attach_function :human_name_goes_by_middle_name, [:pointer], :bool
-    attach_function :human_name_byte_len, [:pointer], :uint32
+    def self.native_lib_path
+      platform = Gem::Platform.local
 
-    attach_function :human_name_free_name, [:pointer], :void
-    attach_function :human_name_free_string, [:pointer], :void
+      filename = case platform.os
+        when 'darwin'
+          'libhuman_name.dylib'
+        when 'linux'
+          'libhuman_name.so'
+        else
+          raise UnsupportedPlatform.new
+        end
+
+      File.expand_path(
+        File.join('../native/', normalized_cpu, filename),
+        __FILE__,
+      )
+    end
+
+    # Ruby reports the same CPU under several names: 'x64' on some builds,
+    # 'aarch64' on Linux ARM against 'arm64' on macOS, and 'universal' on a
+    # universal macOS build (where only RbConfig knows the real architecture).
+    def self.normalized_cpu
+      cpu = Gem::Platform.local.cpu
+      cpu = RbConfig::CONFIG['host_cpu'] if cpu.nil? || cpu == 'universal'
+
+      case cpu
+        when 'x64', 'amd64' then 'x86_64'
+        when 'aarch64' then 'arm64'
+        else cpu
+      end
+    end
   end
+
+  Native.init!
 
   class NativeString < String
     DESTRUCTOR = Native.method(:human_name_free_string)
