@@ -1,3 +1,3 @@
 module HumanName
-  VERSION = '0.3.3.1.academia'.freeze
+  VERSION = '0.3.4.academia'.freeze
 end
