@@ -65,6 +65,7 @@ module HumanName
 
       cpu = platform.cpu
       cpu = 'x86_64' if cpu == 'x64'
+      cpu = 'arm64' if cpu == 'aarch64'
 
       File.expand_path(
         File.join('../native/', cpu, filename),
