@@ -20,7 +20,8 @@ module HumanName
     extend FFI::Library
 
     extension = RUBY_PLATFORM =~ /darwin|mac os/i ? 'dylib' : 'so'
-    ffi_lib File.expand_path("../libhuman_name.#{extension}", __FILE__)
+    cpu = RbConfig::CONFIG['host_cpu'].sub(/\Aaarch64\z/, 'arm64')
+    ffi_lib File.expand_path("../native/#{cpu}/libhuman_name.#{extension}", __FILE__)
 
     attach_function :human_name_parse, [:string], :pointer
     attach_function :human_name_consistent_with, [:pointer, :pointer], :bool
